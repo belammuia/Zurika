@@ -1,11 +1,14 @@
 from django.conf import settings
 from django.db import models
+from auditlog.registry import auditlog
 
 
 class Vehicle(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="vehicles")
     name = models.CharField(max_length=100)  
     registration_number = models.CharField(max_length=20, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.registration_number
@@ -35,6 +38,35 @@ class Policy(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     insurer_name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.policy_number
+
+auditlog.register(
+    Vehicle,
+    include_fields=[
+        "owner",
+        "name",
+        "registration_number",
+        "created_at",
+        "updated_at",
+    ],
+)
+
+auditlog.register(
+    Policy,
+    include_fields=[
+        "user",
+        "vehicle",
+        "policy_number",
+        "policy_type",
+        "status",
+        "start_date",
+        "end_date",
+        "insurer_name",
+        "created_at",
+        "updated_at",
+    ],
+)

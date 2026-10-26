@@ -4,7 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import Profile
+from .models import Profile, OfficerProfile
 
 User = get_user_model()
 
@@ -49,23 +49,20 @@ class CustomRegistrationSerializer(serializers.ModelSerializer):
         last_name = validated_data.pop("last_name")
         role = validated_data["role"]
 
-        if role in (
-            User.Role.OFFICER,
-            User.Role.SENIOR_OFFICER,
-        ):
-            user = User.objects.create_custom_staff(
-                **validated_data
-            )
-        else:
-            user = User.objects.create_user(
-                **validated_data
-            )
-
-        Profile.objects.create(
-            user=user,
-            first_name=first_name,
-            last_name=last_name,
+        user = (
+            User.objects.create_custom_staff(**validated_data)
+            if role in (User.Role.OFFICER, User.Role.SENIOR_OFFICER)
+            else User.objects.create_user(**validated_data)
         )
+
+        if role in (User.Role.OFFICER, User.Role.SENIOR_OFFICER):
+            OfficerProfile.objects.create(officer=user)
+        else:
+            Profile.objects.create(
+                user=user,
+                first_name=first_name,
+                last_name=last_name,
+            )
 
         return user
 

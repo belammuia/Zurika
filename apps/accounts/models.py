@@ -90,6 +90,25 @@ class Profile(models.Model):
         return f"{self.first_name} {self.last_name} ({self.user_id})"
 
 
+class OfficerProfile(models.Model):
+    class Availability(models.TextChoices):
+        AVAILABLE = "available", "Available"
+        BUSY = "busy", "Busy"
+
+    officer = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="officer_profile",
+    )
+    availability = models.CharField(
+        max_length=10,
+        choices=Availability.choices,
+        default=Availability.AVAILABLE,
+    )
+
+    def __str__(self):
+        return f"{self.officer.email} - {self.availability}"
+
 auditlog.register(
     User,
     include_fields=[
