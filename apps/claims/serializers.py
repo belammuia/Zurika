@@ -5,11 +5,13 @@ from rest_framework import serializers
 
 from apps.policies.models import Policy
 from .models import Claim, ClaimPolicy, SupportingDocument
-from .services import triage_claim
+from .services import triage_claim, process_claim
 from .routing import assign_claim, NoAvailableOfficerError
 from .image_validation import (
     ImageVerdict, validate_vehicle_image
 )
+from apps.accounts.serializers import AssignedOfficerSerializer
+
 
 
 class ClaimSubmissionSerializer(serializers.ModelSerializer):
@@ -19,6 +21,7 @@ class ClaimSubmissionSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+
 
     class Meta:
         model = Claim
@@ -145,19 +148,7 @@ class ClaimSubmissionSerializer(serializers.ModelSerializer):
             claim.save(update_fields=["status"])
             return claim
 
-        triage_claim(claim)
-        claim.refresh_from_db()
-
-
-        if claim.queue in (
-            Claim.Queue.OFFICER,
-            Claim.Queue.SENIOR,
-        ):
-            try:
-                assign_claim(claim)
-            except NoAvailableOfficerError:
-                pass
-
+        claim = process_claim(claim)
         return claim
 
 
@@ -174,6 +165,9 @@ def has_required_documents(claim):
 
 
 class ClaimReadSerializer(serializers.ModelSerializer):
+    assigned_officer = AssignedOfficerSerializer(read_only=True)
+    can_decide = serializers.SerializerMethodField()
+
     class Meta:
         model = Claim
         fields = [
@@ -194,11 +188,21 @@ class ClaimReadSerializer(serializers.ModelSerializer):
             "queue",
             "assigned_officer",
             "multi_policy_flag",
+            "decision_source",
+            "decision_reason",
+            "can_decide",
         ]
         read_only_fields = fields
 
+    def get_can_decide(self, claim):
+        request = self.context.get("request")
+        return bool(
+            request
+            and claim.assigned_officer_id == request.user.id
+            and claim.status == Claim.Status.SUBMITTED
+            )
 
-
+        
 class SupportingDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SupportingDocument
@@ -254,20 +258,15 @@ class SupportingDocumentSerializer(serializers.ModelSerializer):
         if not has_required_documents(claim):
             return document
 
-
-        triage_claim(claim)
-
-        claim.refresh_from_db()
         claim.status = Claim.Status.SUBMITTED
         claim.save(update_fields=["status"])
 
-        if claim.queue in (
-            Claim.Queue.OFFICER,
-            Claim.Queue.SENIOR,
-        ):
-            try:
-                assign_claim(claim)
-            except NoAvailableOfficerError:
-                pass
+        process_claim(claim)
 
         return document
+
+class ClaimReviewSerializer(serializers.Serializer):
+    decision = serializers.ChoiceField(
+        choices=[Claim.Status.APPROVED, Claim.Status.REJECTED]
+    )
+    reason = serializers.CharField(max_length=255)

@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from auditlog.models import LogEntry
 from auditlog.admin import LogEntryAdmin as BaseLogEntryAdmin
 
-from .models import User, Profile
+from .models import User, Profile, OfficerProfile
 
 
 @admin.register(User)
@@ -80,6 +80,13 @@ class ProfileAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ("updated_at",)
+
+@admin.register(OfficerProfile)
+class OfficerProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "officer",
+        "availability",
+    )
 
 
 

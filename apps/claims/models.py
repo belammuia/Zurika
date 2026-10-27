@@ -52,6 +52,8 @@ class Claim(models.Model):
         on_delete=models.SET_NULL, related_name="assigned_claims",
     )
     multi_policy_flag = models.BooleanField(default=False)
+    decision_source = models.CharField(max_length=10, blank=True, default="")
+    decision_reason = models.CharField(max_length=255, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 

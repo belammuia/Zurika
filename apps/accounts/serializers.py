@@ -56,7 +56,11 @@ class CustomRegistrationSerializer(serializers.ModelSerializer):
         )
 
         if role in (User.Role.OFFICER, User.Role.SENIOR_OFFICER):
-            OfficerProfile.objects.create(officer=user)
+            OfficerProfile.objects.create(
+                officer=user,
+                first_name=first_name,
+                last_name=last_name,
+                )
         else:
             Profile.objects.create(
                 user=user,
@@ -92,3 +96,17 @@ class CustomUserProfileSerializer(serializers.ModelSerializer):
             "last_name",
             "user",
         ]
+
+class AssignedOfficerSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    title = serializers.CharField(source="get_role_display", read_only=True)
+
+    class Meta:
+        model = User
+        fields = ["name", "title"]
+
+    def get_name(self, user):
+        profile = getattr(user, "officer_profile", None)
+        if not profile:
+            return "Claims team"
+        return f"{profile.first_name} {profile.last_name[:1]}.".strip()

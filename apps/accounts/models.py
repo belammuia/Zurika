@@ -106,6 +106,9 @@ class OfficerProfile(models.Model):
         default=Availability.AVAILABLE,
     )
 
+    first_name = models.CharField(max_length=65, default="")
+    last_name = models.CharField(max_length=65, default="")
+
     def __str__(self):
         return f"{self.officer.email} - {self.availability}"
 

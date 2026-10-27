@@ -16,7 +16,7 @@ class ImageVerdict(str, Enum):
 
 VEHICLE_CLASSES = {"car", "motorcycle", "truck", "bus"}
 CONFIDENCE_THRESHOLD = 0.40
-DEBUG_CONFIDENCE = 0.05  # temporary: lets us see low-confidence detections
+DEBUG_CONFIDENCE = 0.05  
 
 
 @lru_cache(maxsize=1)
