@@ -40,7 +40,7 @@ class Claim(models.Model):
     severity = models.CharField(max_length=10, choices=Severity.choices, blank=True)
     priority = models.CharField(max_length=10, choices=Priority.choices, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.SUBMITTED)
-
+    approved_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     estimated_cost = models.DecimalField(max_digits=12, decimal_places=2)
     vehicles_involved = models.PositiveSmallIntegerField(default=1)
     has_injury = models.BooleanField(default=False)
@@ -97,12 +97,8 @@ class TriageRule(models.Model):
 auditlog.register(
     Claim,
     include_fields=[
-        "user",
-        "vehicle",
-        "incident_date",
-        "assigned_officer",
-        "created_at",
-        "updated_at",
+        "status", "queue", "priority", "assigned_officer",
+        "decision_source", "decision_reason",
     ],
 )
 

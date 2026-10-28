@@ -35,6 +35,7 @@ class Policy(models.Model):
     policy_number = models.CharField(max_length=50, unique=True)
     policy_type = models.CharField(max_length=20, choices=PolicyType.choices, default=PolicyType.THIRD_PARTY)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    coverage_limit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     start_date = models.DateField()
     end_date = models.DateField()
     insurer_name = models.CharField(max_length=100)

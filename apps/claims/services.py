@@ -10,6 +10,8 @@ from .routing import assign_claim, NoAvailableOfficerError
 from django.core.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 from apps.accounts.models import OfficerProfile
+from .tasks import assign_pending_claims
+from apps.payouts.payouts import create_payout
 
 
 FAST_TRACK_THRESHOLD = Decimal("50000.00")
@@ -108,9 +110,14 @@ def fast_track_rejection_reason(claim):
 
     if policy and (claim.incident_date - policy.policy.start_date).days < NEW_POLICY_DAYS:
         return "incident soon after policy start"
-
+    
+    if claim.estimated_cost > calculate_approved_amount(claim):
+      return "exceeds coverage limit"
+    
     if random.random() < AUDIT_SAMPLE_RATE:
         return "random audit sample"
+    
+
 
     return None
 
@@ -128,9 +135,12 @@ def process_fast_track(claim):
         claim.save(update_fields=["queue", "decision_reason"])
     else:
         claim.status = Claim.Status.APPROVED
+        claim.approved_amount = calculate_approved_amount(claim)
         claim.decision_source = "auto"
         claim.decision_reason = "Passed fast-track checks"
         claim.save(update_fields=["status", "decision_source", "decision_reason"])
+        claim.approved_amount = calculate_approved_amount(claim)
+        create_payout(claim)
     return claim
 
 def process_claim(claim):
@@ -156,20 +166,40 @@ def review_claim(claim, officer, decision, reason):
         raise PermissionDenied("This claim is not assigned to you")
 
     if claim.status != Claim.Status.SUBMITTED:
-        raise ValidationError("This claim either has insuffient documents or the decision has been made")
+        raise ValidationError("This claim has already been decided or is awaiting documents")
+
+    fields = ["status", "decision_source", "decision_reason"]
+
+    if decision == Claim.Status.APPROVED:
+        amount = calculate_approved_amount(claim)
+        if amount <= 0:
+            raise ValidationError("Cannot approve: this claim has no coverage under its policy.")
+        claim.approved_amount = amount
+        fields.append("approved_amount")
 
     claim.status = decision
-    claim.decision_source = 'officer'
+    claim.decision_source = "officer"
     claim.decision_reason = reason
-
-    claim.save(update_fields=["status","decision_source", "decision_reason"])
+    claim.save(update_fields=fields)
 
     profile = OfficerProfile.objects.select_for_update().get(officer=officer)
     profile.availability = OfficerProfile.Availability.AVAILABLE
     profile.save(update_fields=["availability"])
 
+    if decision == Claim.Status.APPROVED:
+        create_payout(claim)
+
+    transaction.on_commit(assign_pending_claims.delay)
     return claim
 
+def calculate_approved_amount(claim):
+    limits = [
+        cp.policy.coverage_limit
+        for cp in claim.claim_policies.select_related("policy")
+    ]
+    if not limits:
+        return Decimal("0")
+    return min(claim.estimated_cost, max(limits))
 
 
 

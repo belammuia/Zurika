@@ -5,6 +5,12 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 from auditlog.registry import auditlog
+from django.core.validators import RegexValidator
+
+phone_validator = RegexValidator(
+    regex=r'^\+?\d{9,13}$',
+    message="Enter a valid Kenyan number (e.g., 0712345678 or +254712345678)."
+)
 
 
 
@@ -84,10 +90,33 @@ class Profile(models.Model):
 
     first_name = models.CharField(max_length=65, db_index=True)
     last_name = models.CharField(max_length=65, db_index=True)
+    phone_number = models.CharField(validators=[phone_validator], max_length=15, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        super().clean()
+        
+        if not self.phone_number:
+            return
+            
+        num = self.phone_number.strip().lstrip('+')
+        
+        if num.startswith('0'):
+            self.phone_number = "254" + num[1:]
+            
+        elif (num.startswith('7') or num.startswith('1')) and len(num) == 9:
+            self.phone_number = "254" + num
+            
+        else:
+            self.phone_number = num
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.user_id})"
+    
 
 
 class OfficerProfile(models.Model):

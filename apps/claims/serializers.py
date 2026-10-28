@@ -167,6 +167,7 @@ def has_required_documents(claim):
 class ClaimReadSerializer(serializers.ModelSerializer):
     assigned_officer = AssignedOfficerSerializer(read_only=True)
     can_decide = serializers.SerializerMethodField()
+    payout_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Claim
@@ -191,6 +192,7 @@ class ClaimReadSerializer(serializers.ModelSerializer):
             "decision_source",
             "decision_reason",
             "can_decide",
+            "payout_status",
         ]
         read_only_fields = fields
 
@@ -201,6 +203,10 @@ class ClaimReadSerializer(serializers.ModelSerializer):
             and claim.assigned_officer_id == request.user.id
             and claim.status == Claim.Status.SUBMITTED
             )
+    
+    def get_payout_status(self, claim):
+        payout = getattr(claim, "payout", None)
+        return payout.status if payout else None
 
         
 class SupportingDocumentSerializer(serializers.ModelSerializer):
