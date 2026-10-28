@@ -7,9 +7,9 @@ __pycache__
 .DS-STORE
 *.json
 *.db
-/**/migrations/
 !/**/migrations/__init__.py
 
 *.pt
 
 /media
+celerybeat-schedule*
