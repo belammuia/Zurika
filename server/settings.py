@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.claims',
     'apps.policies',
+    'apps.payouts',
 ]
 
 MIDDLEWARE = [
@@ -163,3 +164,22 @@ SIMPLE_JWT = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+CELERY_BEAT_SCHEDULE = {
+    "assign-pending-claims": {
+        "task": "apps.claims.tasks.assign_pending_claims",
+        "schedule": 60.0,
+    },
+    "recover-stuck-payouts": {
+        "task": "apps.payouts.tasks.recover_stuck_payouts",
+        "schedule": 300.0,
+    },
+}
+CELERY_TASK_ALWAYS_EAGER = True  
+
+
+CELERY_TASK_EAGER_PROPAGATES = True 
+
