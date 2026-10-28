@@ -158,3 +158,5 @@ class ClaimTriageTests(SimpleTestCase):
         triage_claim(claim)
 
         self.assertEqual(claim.status, Claim.Status.SUBMITTED)
+
+
