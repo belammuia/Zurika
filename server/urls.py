@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/auth/v1/', include('apps.accounts.urls')),
     path('api/v1/', include('apps.claims.urls')),
     path('api/v1/', include('apps.policies.urls')),
+    path("api/v1/payouts/", include("apps.payouts.urls")),
 ]
 
 if settings.DEBUG:

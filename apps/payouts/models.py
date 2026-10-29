@@ -10,13 +10,13 @@ class Payout(models.Model):
         PAID = "paid", "Paid"
         FAILED = "failed", "Failed"
 
-    class PAYMENT_Method(models.TextChoices):
+    class Payment_Method(models.TextChoices):
         MPESA = "mpesa", "M-Pesa"
         BANK = "bank", "Bank"
 
     claim = models.OneToOneField(Claim, on_delete=models.PROTECT, related_name="payout")
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    method = models.CharField(max_length=10, choices=PAYMENT_Method.choices, default=PAYMENT_Method.MPESA)
+    method = models.CharField(max_length=10, choices=Payment_Method.choices, default=Payment_Method.MPESA)
     destination = models.CharField(max_length=20)  
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING, db_index=True)
     provider_ref = models.CharField(max_length=100, blank=True, db_index=True)

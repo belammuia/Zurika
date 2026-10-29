@@ -26,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*", "https://reforest-uninsured-wrongness.ngrok-free.dev"]
 
 
 # Application definition
@@ -182,4 +182,18 @@ CELERY_TASK_ALWAYS_EAGER = True
 
 
 CELERY_TASK_EAGER_PROPAGATES = True 
+
+MPESA_CONSUMER_KEY=os.environ.get('MPESA_CONSUMER_KEY')
+MPESA_CONSUMER_SECRET=os.environ.get('MPESA_CONSUMER_SECRET')
+MPESA_PASSKEY=os.environ.get('MPESA_PASSKEY')
+MPESA_SHORTCODE=os.environ.get('MPESA_SHORTCODE')
+MPESA_INITIATOR_NAME = os.environ.get("MPESA_INITIATOR_NAME", default="")
+MPESA_SECURITY_CREDENTIAL=os.environ.get("MPESA_SECURITY_CREDENTIAL", default="")
+MPESA_CALLBACK_BASE_URL=os.environ.get("MPESA_CALLBACK_BASE_URL")
+MPESA_CALLBACK_SECRET=os.environ.get("MPESA_CALLBACK_SECRET")
+MPESA_ENV=os.environ.get("MPESA_ENV")
+MPESA_INITIATOR_PASSWORD=os.environ.get("MPESA_INITIATOR_PASSWORD")
+
+
+
 

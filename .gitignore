@@ -13,3 +13,6 @@ __pycache__
 
 /media
 celerybeat-schedule*
+
+/make_credential.py
+*.cer
