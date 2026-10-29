@@ -32,4 +32,10 @@ def settle_payout(provider_ref, success, reason=""):
     payout.status = Payout.Status.PAID if success else Payout.Status.FAILED
     payout.failure_reason = "" if success else reason[:255]
     payout.save(update_fields=["status", "failure_reason", "updated_at"])
+    if success:
+        from .tasks import send_payout_success_email
+
+        transaction.on_commit(
+            lambda: send_payout_success_email.delay(payout.pk)
+        )
     return payout

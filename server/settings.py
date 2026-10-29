@@ -193,6 +193,11 @@ MPESA_CALLBACK_BASE_URL=os.environ.get("MPESA_CALLBACK_BASE_URL")
 MPESA_CALLBACK_SECRET=os.environ.get("MPESA_CALLBACK_SECRET")
 MPESA_ENV=os.environ.get("MPESA_ENV")
 MPESA_INITIATOR_PASSWORD=os.environ.get("MPESA_INITIATOR_PASSWORD")
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL"
+)
 
 
 

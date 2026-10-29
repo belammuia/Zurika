@@ -97,6 +97,54 @@ class MpesaProvider:
         data = r.json()
         if str(data.get("ResponseCode")) != "0":
             raise ProviderRejected(data.get("ResponseDescription", "Rejected by M-Pesa"))
+        
+    def query_transaction_status(self, payout):
+        """
+        Submit an asynchronous Safaricom Transaction Status query.
+
+        The returned response acknowledges the query; it is not
+        the final status of the original payout.
+        """
+        payload = {
+            "Initiator": settings.MPESA_INITIATOR_NAME,
+            "SecurityCredential": settings.MPESA_SECURITY_CREDENTIAL,
+            "CommandID": "TransactionStatusQuery",
+            "OriginalConversationID": payout.provider_ref,
+            "PartyA": settings.MPESA_SHORTCODE,
+            "IdentifierType": "4",
+            "ResultURL": self._callback_url("status-result"),
+            "QueueTimeOutURL": self._callback_url("status-timeout"),
+            "Remarks": f"Reconcile payout {payout.pk}",
+            "Occasion": f"claim-{payout.claim_id}",
+        }
+
+        try:
+            response = requests.post(
+                f"{self.base}/mpesa/transactionstatus/v1/query",
+                json=payload,
+                headers={
+                    "Authorization": (
+                        f"Bearer {self._get_access_token()}"
+                    ),
+                },
+                timeout=20,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except (requests.RequestException, ValueError) as exc:
+            raise ProviderRejected(
+                "Could not submit transaction status query"
+            ) from exc
+
+        if str(data.get("ResponseCode")) != "0":
+            raise ProviderRejected(
+                data.get(
+                    "ResponseDescription",
+                    "Safaricom rejected the status query",
+                )
+            )
+
+        return data
 
 
 

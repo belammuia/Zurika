@@ -8,6 +8,7 @@ class Payout(models.Model):
         PENDING = "pending", "Pending"
         PROCESSING = "processing", "Processing"
         PAID = "paid", "Paid"
+        UNKNOWN = "unknown", "Unknown - Reconciliation Required"
         FAILED = "failed", "Failed"
 
     class Payment_Method(models.TextChoices):
@@ -22,5 +23,8 @@ class Payout(models.Model):
     provider_ref = models.CharField(max_length=100, blank=True, db_index=True)
     failure_reason = models.CharField(max_length=255, blank=True)
     attempts = models.PositiveSmallIntegerField(default=0)
+    status_query_ref = models.CharField(max_length=100,blank=True,db_index=True)
+    status_query_attempts = models.PositiveSmallIntegerField(default=0)
+    last_status_query_at = models.DateTimeField(null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
