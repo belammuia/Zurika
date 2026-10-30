@@ -1,6 +1,8 @@
+import os
 import logging
 from enum import Enum
 from functools import lru_cache
+from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 from ultralytics import YOLO
@@ -21,7 +23,11 @@ DEBUG_CONFIDENCE = 0.05
 
 @lru_cache(maxsize=1)
 def get_model():
-    return YOLO("yolo11n.pt")
+    default_path = Path(__file__).resolve().parents[2] / "yolo11n.pt"
+    model_path = Path(
+        os.environ.get("YOLO_MODEL_PATH", str(default_path))
+    )
+    return YOLO(str(model_path))
 
 
 def validate_vehicle_image(image_file) -> ImageVerdict:

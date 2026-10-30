@@ -87,23 +87,28 @@ WSGI_APPLICATION = 'server.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('DATABASE_NAME'),
-#         'USER': os.environ.get('DATABASE_USER'),
-#         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
-#         'HOST': os.environ.get('DATABASE_HOST'),
-#         'PORT': os.environ.get('DATABASE_PORT'),
-#     }
-# }
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "tclaims.db",
+DATABASE_ENGINE = os.environ.get("DATABASE_ENGINE", "sqlite")
+
+if DATABASE_ENGINE == "postgres":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DATABASE_NAME", "tclaims"),
+            "USER": os.environ.get("DATABASE_USER", "tclaims"),
+            "PASSWORD": os.environ.get("DATABASE_PASSWORD", ""),
+            "HOST": os.environ.get("DATABASE_HOST", "localhost"),
+            "PORT": os.environ.get("DATABASE_PORT", "5432"),
+            "CONN_MAX_AGE": 60,
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "tclaims.db",
+        }
+    }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -161,12 +166,8 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
-
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 CELERY_BEAT_SCHEDULE = {
     "assign-pending-claims": {
@@ -178,11 +179,25 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 300.0,
     },
 }
-CELERY_TASK_ALWAYS_EAGER = True  
+CELERY_BROKER_URL = os.environ.get(
+    "CELERY_BROKER_URL",
+    "redis://localhost:6379/0",
+)
 
+CELERY_RESULT_BACKEND = os.environ.get(
+    "CELERY_RESULT_BACKEND",
+    "redis://localhost:6379/1",
+)
 
-CELERY_TASK_EAGER_PROPAGATES = True 
+CELERY_TASK_ALWAYS_EAGER = (
+    os.environ.get("CELERY_TASK_ALWAYS_EAGER", "False").lower()
+    == "true"
+)
 
+CELERY_TASK_EAGER_PROPAGATES = (
+    os.environ.get("CELERY_TASK_EAGER_PROPAGATES", "False").lower()
+    == "true"
+)
 MPESA_CONSUMER_KEY=os.environ.get('MPESA_CONSUMER_KEY')
 MPESA_CONSUMER_SECRET=os.environ.get('MPESA_CONSUMER_SECRET')
 MPESA_PASSKEY=os.environ.get('MPESA_PASSKEY')
