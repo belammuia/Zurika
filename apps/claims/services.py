@@ -138,7 +138,12 @@ def process_fast_track(claim):
         claim.approved_amount = calculate_approved_amount(claim)
         claim.decision_source = "auto"
         claim.decision_reason = "Passed fast-track checks"
-        claim.save(update_fields=["status", "decision_source", "decision_reason"])
+        claim.save(update_fields=[
+            "status",
+            "approved_amount",
+            "decision_source",
+            "decision_reason",
+        ])
         claim.approved_amount = calculate_approved_amount(claim)
         create_payout(claim)
     return claim
@@ -162,18 +167,49 @@ def process_claim(claim):
 def review_claim(claim, officer, decision, reason):
     claim = Claim.objects.select_for_update().get(pk=claim.pk)
 
+    if not claim.insurer_id:
+        raise PermissionDenied(
+            "This claim is not associated with an insurer."
+        )
+
+    if not claim.insurer.is_active:
+        raise PermissionDenied(
+            "This insurer is inactive."
+        )
+
+    # Verify the officer belongs to this specific insurer.
+    membership_exists = officer.insurer_memberships.filter(
+        insurer_id=claim.insurer_id,
+        role__in=["claims_officer", "senior_officer"],
+        is_active=True,
+        insurer__is_active=True,
+    ).exists()
+
+    if not membership_exists:
+        raise PermissionDenied(
+            "You are not authorized to review claims for this insurer."
+        )
+
     if claim.assigned_officer_id != officer.id:
-        raise PermissionDenied("This claim is not assigned to you")
+        raise PermissionDenied(
+            "This claim is not assigned to you."
+        )
 
     if claim.status != Claim.Status.SUBMITTED:
-        raise ValidationError("This claim has already been decided or is awaiting documents")
+        raise ValidationError(
+            "This claim has already been decided or is awaiting documents."
+        )
 
     fields = ["status", "decision_source", "decision_reason"]
 
     if decision == Claim.Status.APPROVED:
         amount = calculate_approved_amount(claim)
+
         if amount <= 0:
-            raise ValidationError("Cannot approve: this claim has no coverage under its policy.")
+            raise ValidationError(
+                "Cannot approve: this claim has no coverage under its policy."
+            )
+
         claim.approved_amount = amount
         fields.append("approved_amount")
 
@@ -182,7 +218,9 @@ def review_claim(claim, officer, decision, reason):
     claim.decision_reason = reason
     claim.save(update_fields=fields)
 
-    profile = OfficerProfile.objects.select_for_update().get(officer=officer)
+    profile = OfficerProfile.objects.select_for_update().get(
+        officer=officer
+    )
     profile.availability = OfficerProfile.Availability.AVAILABLE
     profile.save(update_fields=["availability"])
 
@@ -190,6 +228,7 @@ def review_claim(claim, officer, decision, reason):
         create_payout(claim)
 
     transaction.on_commit(assign_pending_claims.delay)
+
     return claim
 
 def calculate_approved_amount(claim):

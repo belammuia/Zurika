@@ -5,14 +5,12 @@ from rest_framework import serializers
 
 from apps.policies.models import Policy
 from .models import Claim, ClaimPolicy, SupportingDocument
-from .services import triage_claim, process_claim
+from .services import triage_claim, process_claim, has_required_documents
 from .routing import assign_claim, NoAvailableOfficerError
 from .image_validation import (
     ImageVerdict, validate_vehicle_image
 )
 from apps.accounts.serializers import AssignedOfficerSerializer
-
-
 
 class ClaimSubmissionSerializer(serializers.ModelSerializer):
     documents = serializers.ListField(
@@ -21,7 +19,6 @@ class ClaimSubmissionSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
-
 
     class Meta:
         model = Claim
@@ -78,13 +75,26 @@ class ClaimSubmissionSerializer(serializers.ModelSerializer):
             status=Policy.Status.ACTIVE,
             start_date__lte=incident_date,
             end_date__gte=incident_date,
+            insurer__is_active=True,
+            insurer__isnull=False,
         )
 
         if not eligible_policies.exists():
             raise serializers.ValidationError({
                 "vehicle": (
-                    "No active policy covers this vehicle "
-                    "on the incident date."
+                    "No active policy from an active insurer covers "
+                    "this vehicle on the incident date."
+                )
+            })
+
+        insurer_ids = set(
+            eligible_policies.values_list("insurer_id", flat=True)
+        )
+
+        if len(insurer_ids) != 1:
+            raise serializers.ValidationError({
+                "vehicle": (
+                    "All eligible policies must belong to the same insurer."
                 )
             })
 
@@ -96,12 +106,16 @@ class ClaimSubmissionSerializer(serializers.ModelSerializer):
 
             if verdict == ImageVerdict.INVALID:
                 raise serializers.ValidationError(
-                    f"photo {index + 1} that has been uploaded is invalid. Upload an appropriate vehicle image please"
+                    f"Photo {index + 1} is invalid. "
+                    "Please upload an appropriate vehicle image."
                 )
+
             if verdict == ImageVerdict.UNCERTAIN:
                 raise serializers.ValidationError(
-                    "Image cannot be resolved, please resubmit another clear image"
+                    "Image cannot be resolved. "
+                    "Please resubmit a clear image."
                 )
+
         return files
 
     @transaction.atomic
@@ -109,19 +123,37 @@ class ClaimSubmissionSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         uploaded_files = validated_data.pop("documents", [])
 
-        claim = Claim.objects.create(
-            user=request.user,
-            **validated_data,
-        )
-
+        # Resolve eligible policies again inside the transaction.
         policies = list(
-            Policy.objects.filter(
-                vehicle=claim.vehicle,
+            Policy.objects.select_for_update()
+            .filter(
+                vehicle=validated_data["vehicle"],
                 user=request.user,
                 status=Policy.Status.ACTIVE,
-                start_date__lte=claim.incident_date,
-                end_date__gte=claim.incident_date,
+                start_date__lte=validated_data["incident_date"],
+                end_date__gte=validated_data["incident_date"],
+                insurer__is_active=True,
+                insurer__isnull=False,
             )
+            .select_related("insurer")
+        )
+
+        insurer_ids = {policy.insurer_id for policy in policies}
+
+        if not policies or len(insurer_ids) != 1:
+            raise serializers.ValidationError({
+                "vehicle": (
+                    "Eligible policies must belong to exactly one "
+                    "active insurer."
+                )
+            })
+
+        insurer_id = next(iter(insurer_ids))
+
+        claim = Claim.objects.create(
+            user=request.user,
+            insurer_id=insurer_id,
+            **validated_data,
         )
 
         ClaimPolicy.objects.bulk_create([
@@ -148,21 +180,7 @@ class ClaimSubmissionSerializer(serializers.ModelSerializer):
             claim.save(update_fields=["status"])
             return claim
 
-        claim = process_claim(claim)
-        return claim
-
-
-def has_required_documents(claim):
-    required_document_types = {"accident_photos"}
-
-    uploaded_document_types = set(
-        claim.documents.values_list("document_type", flat=True)
-    )
-
-    return required_document_types.issubset(
-        uploaded_document_types
-    )
-
+        return process_claim(claim)
 
 class ClaimReadSerializer(serializers.ModelSerializer):
     assigned_officer = AssignedOfficerSerializer(read_only=True)

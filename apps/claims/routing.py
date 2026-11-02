@@ -13,16 +13,11 @@ class NoAvailableOfficerError(Exception):
 
 
 def get_required_role(claim):
-    # PSEUDOCODE:
-    # 1. Check the claim's queue.
-    # 2. Map the queue to the appropriate officer role.
-    # 3. Raise an error if the queue has no configured role.
-
     if claim.queue == Claim.Queue.OFFICER:
-        return User.Role.OFFICER
+        return "claims_officer"
 
     if claim.queue == Claim.Queue.SENIOR:
-        return User.Role.SENIOR_OFFICER
+        return "senior_officer"
 
     raise ValueError(
         f"No automatic officer role configured for queue: {claim.queue}"
@@ -31,35 +26,38 @@ def get_required_role(claim):
 
 @transaction.atomic
 def assign_claim(claim):
-    # PSEUDOCODE:
-    # 1. Start a database transaction.
-    # 2. Lock the claim row.
-    # 3. Determine the required role from the locked claim.
-    # 4. Stop if the claim is already assigned.
-    # 5. Find and lock an available, active officer
-    #    whose role matches the required role.
-    # 6. Raise an exception if no eligible officer exists.
-    # 7. Assign the officer to the claim.
-    # 8. Mark the officer as busy.
-    # 9. Save both changes within the transaction.
-    # 10. Return the updated claim.
-
-    locked_claim = Claim.objects.select_for_update().get(
-        pk=claim.pk
+    locked_claim = (
+        Claim.objects
+        .select_for_update()
+        .select_related("insurer")
+        .get(pk=claim.pk)
     )
-
-    required_role = get_required_role(locked_claim)
 
     if locked_claim.assigned_officer_id is not None:
         raise ValueError("Claim is already assigned.")
+
+    if not locked_claim.insurer_id:
+        raise NoAvailableOfficerError(
+            "Cannot assign a claim without an insurer."
+        )
+
+    if not locked_claim.insurer.is_active:
+        raise NoAvailableOfficerError(
+            "Cannot assign claims belonging to an inactive insurer."
+        )
+
+    required_role = get_required_role(locked_claim)
 
     available_officer_profile = (
         OfficerProfile.objects
         .select_for_update()
         .filter(
             availability=OfficerProfile.Availability.AVAILABLE,
-            officer__role=required_role,
             officer__is_active=True,
+            officer__insurer_memberships__insurer_id=locked_claim.insurer_id,
+            officer__insurer_memberships__role=required_role,
+            officer__insurer_memberships__is_active=True,
+            officer__insurer_memberships__insurer__is_active=True,
         )
         .order_by("pk")
         .first()
@@ -67,7 +65,7 @@ def assign_claim(claim):
 
     if available_officer_profile is None:
         raise NoAvailableOfficerError(
-            "No eligible officers are available."
+            "No eligible officers are available for this insurer."
         )
 
     assigned_officer = available_officer_profile.officer

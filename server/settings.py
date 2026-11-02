@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.claims',
     'apps.policies',
     'apps.payouts',
+    "apps.insurers.apps.InsurersConfig",
 ]
 
 MIDDLEWARE = [

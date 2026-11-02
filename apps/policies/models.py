@@ -38,7 +38,13 @@ class Policy(models.Model):
     coverage_limit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     start_date = models.DateField()
     end_date = models.DateField()
-    insurer_name = models.CharField(max_length=100)
+    insurer = models.ForeignKey(
+        "insurers.Insurer",
+        on_delete=models.PROTECT,
+        related_name="policies",
+        null=True,
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

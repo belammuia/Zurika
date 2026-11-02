@@ -1,13 +1,13 @@
 from rest_framework import serializers
 
 from .models import Vehicle, Policy
-
+from apps.insurers.models import Insurer
 
 class VehicleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehicle
         fields = ["id", "owner", "name", "registration_number"]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "owner"]
 
     def validate_registration_number(self, value):
         value = value.strip().upper()
@@ -26,14 +26,22 @@ class VehicleSerializer(serializers.ModelSerializer):
 
         return value
 
+    def create(self, validated_data):
+        validated_data["owner"] = self.context["request"].user
+        return super().create(validated_data)
 
 class PolicySerializer(serializers.ModelSerializer):
+    insurer = serializers.PrimaryKeyRelatedField(
+        queryset=Insurer.objects.all()
+    )
+
     class Meta:
         model = Policy
         fields = [
             "id",
             "user",
             "vehicle",
+            "insurer",
             "policy_number",
             "policy_type",
             "status",
@@ -41,9 +49,11 @@ class PolicySerializer(serializers.ModelSerializer):
             "end_date",
             "insurer_name",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "insurer_name"]
 
     def validate(self, attrs):
+        request = self.context["request"]
+
         user = attrs.get(
             "user",
             self.instance.user if self.instance else None,
@@ -51,6 +61,10 @@ class PolicySerializer(serializers.ModelSerializer):
         vehicle = attrs.get(
             "vehicle",
             self.instance.vehicle if self.instance else None,
+        )
+        insurer = attrs.get(
+            "insurer",
+            self.instance.insurer if self.instance else None,
         )
         start_date = attrs.get(
             "start_date",
@@ -74,5 +88,21 @@ class PolicySerializer(serializers.ModelSerializer):
                 "end_date": "End date cannot be before start date."
             })
 
-        return attrs
+        if not insurer:
+            raise serializers.ValidationError({
+                "insurer": "An insurer is required."
+            })
 
+        is_authorized = request.user.insurer_memberships.filter(
+            insurer=insurer,
+            role="admin",
+            is_active=True,
+            insurer__is_active=True,
+        ).exists()
+
+        if not is_authorized:
+            raise serializers.ValidationError({
+                "insurer": "You cannot manage policies for this insurer."
+            })
+
+        return attrs

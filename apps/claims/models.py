@@ -54,6 +54,13 @@ class Claim(models.Model):
     multi_policy_flag = models.BooleanField(default=False)
     decision_source = models.CharField(max_length=10, blank=True, default="")
     decision_reason = models.CharField(max_length=255, blank=True, default="")
+    insurer = models.ForeignKey(
+        "insurers.Insurer",
+        on_delete=models.PROTECT,
+        related_name="claims",
+        null=True,
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 

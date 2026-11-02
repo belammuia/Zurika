@@ -48,9 +48,30 @@ def _mark_unknown(payout, reason):
 @shared_task
 def send_payout(payout_id):
     with transaction.atomic():
-        payout = Payout.objects.select_for_update().get(pk=payout_id)
+        payout = (
+            Payout.objects.select_for_update()
+            .select_related("claim__insurer")
+            .get(pk=payout_id)
+        )
 
         if payout.status != Payout.Status.PENDING:
+            return
+
+        if not payout.claim.insurer_id:
+            logger.error(
+                "Payout %s belongs to a claim without an insurer.",
+                payout.pk,
+            )
+            _fail(payout, "Claim has no assigned insurer.")
+            return
+
+        if not payout.claim.insurer.is_active:
+            logger.error(
+                "Payout %s belongs to inactive insurer %s.",
+                payout.pk,
+                payout.claim.insurer_id,
+            )
+            _fail(payout, "Insurer is inactive.")
             return
 
         payout.method = choose_method(payout.amount)
@@ -103,6 +124,9 @@ def recover_stuck_payouts():
     pending_ids = Payout.objects.filter(
         status=Payout.Status.PENDING,
         created_at__lt=cutoff,
+        claim__insurer__is_active=True,
+    ).exclude(
+        claim__insurer__isnull=True,
     ).values_list("pk", flat=True)
 
     for payout_id in pending_ids.iterator():
@@ -111,23 +135,22 @@ def recover_stuck_payouts():
     stuck = Payout.objects.filter(
         status=Payout.Status.PROCESSING,
         updated_at__lt=cutoff,
+        claim__insurer__is_active=True,
+    ).exclude(
+        claim__insurer__isnull=True,
     )
 
     for payout in stuck.iterator():
         logger.warning(
-            "Payout %s stuck in processing since %s",
+            "Payout %s for insurer %s stuck in processing since %s",
             payout.pk,
+            payout.claim.insurer_id,
             payout.updated_at,
         )
 
-
 @shared_task
 def reconcile_uncertain_payouts():
-    """
-    Query old unresolved M-Pesa payouts.
 
-    Never resend the original payment.
-    """
     now = timezone.now()
     cutoff = now - STATUS_QUERY_AGE
     retry_before = now - STATUS_QUERY_INTERVAL
@@ -140,6 +163,9 @@ def reconcile_uncertain_payouts():
         ],
         updated_at__lt=cutoff,
         status_query_attempts__lt=STATUS_QUERY_MAX_ATTEMPTS,
+        claim__insurer__is_active=True,
+    ).exclude(
+        claim__insurer__isnull=True,
     ).filter(
         Q(last_status_query_at__isnull=True)
         | Q(last_status_query_at__lt=retry_before)

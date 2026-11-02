@@ -4,8 +4,17 @@ from .models import Claim, Payout
 
 @transaction.atomic
 def create_payout(claim):
-    """Idempotent: one payout per claim, and it is sent only after commit."""
-    from .tasks import send_payout  
+    from .tasks import send_payout
+
+    if not claim.insurer_id:
+        raise ValueError("Claim must belong to an insurer.")
+
+    if not claim.insurer.is_active:
+        raise ValueError("Cannot pay claims for an inactive insurer.")
+
+    if claim.status != Claim.Status.APPROVED:
+        raise ValueError("Only approved claims can be paid.")
+
     if not claim.approved_amount or claim.approved_amount <= 0:
         raise ValueError("Nothing to pay out.")
 
@@ -16,10 +25,13 @@ def create_payout(claim):
             "destination": claim.user.profile.phone_number,
         },
     )
-    if created:
-        transaction.on_commit(lambda: send_payout.delay(payout.pk))
-    return payout
 
+    if created:
+        transaction.on_commit(
+            lambda: send_payout.delay(payout.pk)
+        )
+
+    return payout
 
 @transaction.atomic
 def settle_payout(provider_ref, success, reason=""):

@@ -28,13 +28,25 @@ class ClaimViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
         qs = Claim.objects.select_related(
-            "user", "vehicle", "assigned_officer__profile"
+            "user",
+            "vehicle",
+            "insurer",
+            "assigned_officer__profile",
         )
+
         if user.role == "client":
             return qs.filter(user=user)
+
         if user.role in ("claims_officer", "senior_officer", "admin"):
-            return qs
+            insurer_ids = user.insurer_memberships.filter(
+                is_active=True,
+                insurer__is_active=True,
+            ).values_list("insurer_id", flat=True)
+
+            return qs.filter(insurer_id__in=insurer_ids)
+
         return Claim.objects.none()
 
     def get_serializer_class(self):
@@ -69,10 +81,6 @@ class ClaimViewSet(viewsets.ModelViewSet):
 class SupportingDocumentViewSet(viewsets.ModelViewSet):
     queryset = SupportingDocument.objects.all()
     serializer_class = SupportingDocumentSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsClient,
-    ]
     parser_classes = [
         MultiPartParser,
         FormParser,
@@ -80,11 +88,33 @@ class SupportingDocumentViewSet(viewsets.ModelViewSet):
     ]
     http_method_names = ["get", "post", "head", "options"]
 
+    def get_permissions(self):
+        if self.action == "create":
+            return [
+                permissions.IsAuthenticated(),
+                IsClient(),
+            ]
+
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
-        return SupportingDocument.objects.filter(
-            claim__user=self.request.user
-        ).select_related("claim")
+        user = self.request.user
 
+        qs = SupportingDocument.objects.select_related(
+            "claim",
+            "claim__insurer",
+            "claim__user",
+        )
 
+        if user.role == "client":
+            return qs.filter(claim__user=user)
 
+        if user.role in ("claims_officer", "senior_officer", "admin"):
+            insurer_ids = user.insurer_memberships.filter(
+                is_active=True,
+                insurer__is_active=True,
+            ).values_list("insurer_id", flat=True)
 
+            return qs.filter(claim__insurer_id__in=insurer_ids)
+
+        return SupportingDocument.objects.none()

@@ -1,3 +1,4 @@
+
 from celery import shared_task
 from django.db.models import Case, IntegerField, Value, When
 
@@ -19,8 +20,14 @@ def assign_pending_claims():
         Claim.objects.filter(
             assigned_officer__isnull=True,
             status=Claim.Status.SUBMITTED,
-            queue__in=[Claim.Queue.OFFICER, Claim.Queue.SENIOR],
+            queue__in=[
+                Claim.Queue.OFFICER,
+                Claim.Queue.SENIOR,
+            ],
+            insurer__isnull=False,
+            insurer__is_active=True,
         )
+        .select_related("insurer")
         .annotate(rank=priority_rank)
         .order_by("rank", "claim_date", "id")
     )
@@ -29,14 +36,19 @@ def assign_pending_claims():
     assigned = 0
 
     for claim in pending:
-        if claim.queue in exhausted_queues:
+        queue_key = (claim.insurer_id, claim.queue)
+
+        if queue_key in exhausted_queues:
             continue
+
         try:
             assign_claim(claim)
             assigned += 1
+
         except NoAvailableOfficerError:
-            exhausted_queues.add(claim.queue)
+            exhausted_queues.add(queue_key)
+
         except ValueError:
-            continue  
+            continue
 
     return f"Assigned {assigned} pending claims."

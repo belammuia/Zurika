@@ -16,3 +16,6 @@ celerybeat-schedule*
 
 /make_credential.py
 *.cer
+
+
+/backups/
