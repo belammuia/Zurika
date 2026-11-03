@@ -33,7 +33,7 @@ class ClaimViewSet(viewsets.ModelViewSet):
             "user",
             "vehicle",
             "insurer",
-            "assigned_officer__profile",
+            # "assigned_officer__profile",
         )
 
         if user.role == "client":

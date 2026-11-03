@@ -28,7 +28,7 @@ def get_required_role(claim):
 def assign_claim(claim):
     locked_claim = (
         Claim.objects
-        .select_for_update()
+        .select_for_update(of=("self",))
         .select_related("insurer")
         .get(pk=claim.pk)
     )

@@ -79,4 +79,41 @@ class Payout(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class PayoutAttempt(models.Model):
+    class Status(models.TextChoices):
+        PROCESSING = "processing", "Processing"
+        SUCCESS = "success", "Successful"
+        FAILED = "failed", "Failed"
+        UNKNOWN = "unknown", "Unknown"
+
+    payout = models.ForeignKey(
+        Payout,
+        on_delete=models.PROTECT,
+        related_name="payment_attempts",
+    )
+
+    attempt_number = models.PositiveSmallIntegerField()
+    provider_ref = models.CharField(max_length=100, unique=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PROCESSING,
+    )
+    failure_reason = models.CharField(max_length=255, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["attempt_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["payout", "attempt_number"],
+                name="unique_payout_attempt_number",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Payout {self.payout_id} - Attempt {self.attempt_number}"
+
 

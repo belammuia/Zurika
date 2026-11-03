@@ -33,15 +33,6 @@ services:
     command: celery -A server beat --loglevel=info
     env_file:
       - .env
-    environment:
-      DATABASE_ENGINE: postgres
-      DATABASE_NAME: tclaims
-      DATABASE_USER: tclaims
-      DATABASE_PASSWORD: localdevpassword
-      DATABASE_HOST: db
-      DATABASE_PORT: "5432"
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/1
     volumes:
       - .:/app
     depends_on:
@@ -52,12 +43,10 @@ services:
 
   db:
     image: postgres:17-alpine
-    environment:
-      POSTGRES_DB: tclaims
-      POSTGRES_USER: tclaims
-      POSTGRES_PASSWORD: localdevpassword
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -70,6 +59,22 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command:
+      - "http"
+      - "web:8000"
+      - "--log=stdout"
+    env_file:
+      - .env
+    ports:
+      - "4040:4040"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - web
 
 volumes:
   postgres_data:

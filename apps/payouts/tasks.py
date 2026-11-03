@@ -9,7 +9,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import Payout
+from .models import Payout, PayoutAttempt
 from .payouts import settle_payout
 from .providers import ProviderRejected, get_provider
 from django.conf import settings
@@ -36,6 +36,14 @@ def _fail(payout, reason):
         update_fields=["status", "failure_reason", "updated_at"]
     )
 
+    PayoutAttempt.objects.filter(
+        payout=payout,
+        provider_ref=payout.provider_ref,
+    ).update(
+        status=PayoutAttempt.Status.FAILED,
+        failure_reason=str(reason)[:255],
+    )
+
 
 def _mark_unknown(payout, reason):
     payout.status = Payout.Status.UNKNOWN
@@ -44,12 +52,20 @@ def _mark_unknown(payout, reason):
         update_fields=["status", "failure_reason", "updated_at"]
     )
 
-
+    PayoutAttempt.objects.filter(
+        payout=payout,
+        provider_ref=payout.provider_ref,
+    ).update(
+        status=PayoutAttempt.Status.UNKNOWN,
+        failure_reason=str(reason)[:255],
+    )
+    
 @shared_task
 def send_payout(payout_id):
     with transaction.atomic():
         payout = (
-            Payout.objects.select_for_update()
+            Payout.objects
+            .select_for_update(of=("self",))
             .select_related("claim__insurer")
             .get(pk=payout_id)
         )
@@ -82,10 +98,18 @@ def send_payout(payout_id):
             payout.save(update_fields=["method", "updated_at"])
             _fail(payout, exc)
             return
-
+        
         payout.status = Payout.Status.PROCESSING
         payout.attempts += 1
         payout.provider_ref = provider.reference_for(payout)
+
+        attempt = PayoutAttempt.objects.create(
+            payout=payout,
+            attempt_number=payout.attempts,
+            provider_ref=payout.provider_ref,
+            status=PayoutAttempt.Status.PROCESSING,
+        )
+
         payout.save(
             update_fields=[
                 "method",
