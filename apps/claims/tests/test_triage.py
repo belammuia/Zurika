@@ -5,8 +5,8 @@ from unittest.mock import Mock
 
 from django.test import SimpleTestCase
 
-from .models import Claim
-from .services import triage_claim
+from ..models import Claim
+from ..services import triage_claim
 
 
 class ClaimTriageTests(SimpleTestCase):
