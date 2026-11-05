@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from .models import Payout, PayoutAttempt
-from .payouts import settle_payout
+from .services.payouts import settle_payout
 from .providers import ProviderRejected, get_provider
 from django.conf import settings
 from django.core.mail import send_mail

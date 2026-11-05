@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Vehicle, Policy
+from ..models import Vehicle, Policy
 from apps.insurers.models import Insurer
 
 class VehicleSerializer(serializers.ModelSerializer):

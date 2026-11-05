@@ -1,7 +1,7 @@
 
 from decimal import Decimal
 
-from .models import Claim, SupportingDocument
+from ..models import Claim, SupportingDocument
 from django.utils import timezone
 from datetime import timedelta
 import random
@@ -10,8 +10,8 @@ from .routing import assign_claim, NoAvailableOfficerError
 from django.core.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 from apps.accounts.models import OfficerProfile
-from .tasks import assign_pending_claims
-from apps.payouts.payouts import create_payout
+from ..tasks import assign_pending_claims
+from apps.payouts.services.payouts import create_payout
 
 
 FAST_TRACK_THRESHOLD = Decimal("50000.00")

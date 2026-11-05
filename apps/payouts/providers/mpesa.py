@@ -2,7 +2,7 @@ import uuid
 
 import requests
 from django.conf import settings
-from .models import Payout
+from ..models import Payout
 import base64
 
 from cryptography import x509
@@ -12,29 +12,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 SANDBOX_URL = "https://sandbox.safaricom.co.ke"
 PRODUCTION_URL = "https://api.safaricom.co.ke"
 
-
-class ProviderRejected(Exception):
-    """The provider definitely did not take the payment."""
-
-
-def normalize_phone(raw):
-    digits = "".join(ch for ch in str(raw) if ch.isdigit())
-    if len(digits) == 10 and digits.startswith("0"):
-        digits = "254" + digits[1:]
-    if not (len(digits) == 12 and digits.startswith("254")):
-        raise ProviderRejected("Invalid phone number")
-    return digits
-
-
-class FakeProvider:
-    auto_settle = True
-
-    def reference_for(self, payout):
-        return f"FAKE-{payout.pk}"
-
-    def send(self, payout):
-        pass  
-
+from .base import ProviderRejected, normalize_phone
 
 
 class MpesaProvider:
@@ -145,18 +123,3 @@ class MpesaProvider:
             )
 
         return data
-
-
-
-def get_provider(method):
-    if method == Payout.Payment_Method.MPESA:
-        return MpesaProvider()
-
-    if method == Payout.Payment_Method.BANK:
-        raise ProviderRejected(
-            "Bank provider is not implemented yet."
-        )
-
-    raise ProviderRejected(
-        f"Unsupported payment method: {method}"
-    )

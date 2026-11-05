@@ -11,7 +11,7 @@ from rest_framework.test import APIClient
 
 from apps.payouts.models import Payout
 from apps.claims.models import Claim
-from apps.payouts.payouts import settle_payout
+from apps.payouts.services.payouts import settle_payout
 from apps.payouts.providers import (
     MpesaProvider,
     ProviderRejected,

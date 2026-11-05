@@ -21,10 +21,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/v1/', include('apps.accounts.urls')),
-    path('api/v1/', include('apps.claims.urls')),
-    path('api/v1/', include('apps.policies.urls')),
-    path("api/v1/payouts/", include("apps.payouts.urls")),
+    path('api/auth/v1/', include('apps.accounts.api.urls')),
+    path('api/v1/', include('apps.claims.api.urls')),
+    path('api/v1/', include('apps.policies.api.urls')),
+    path("api/v1/payouts/", include("apps.payouts.api.urls")),
 ]
 
 if settings.DEBUG:

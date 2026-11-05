@@ -2,7 +2,7 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from .models import Claim
+from ..models import Claim
 from apps.accounts.models import OfficerProfile
 
 User = get_user_model()

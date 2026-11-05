@@ -3,7 +3,7 @@ from celery import shared_task
 from django.db.models import Case, IntegerField, Value, When
 
 from .models import Claim
-from .routing import assign_claim, NoAvailableOfficerError
+from .services.routing import assign_claim, NoAvailableOfficerError
 
 
 @shared_task

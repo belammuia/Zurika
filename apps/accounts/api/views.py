@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import CustomRegistrationSerializer, CustomUserProfileSerializer
 from django.contrib.auth import get_user_model
-from .models import Profile
+from ..models import Profile
 from apps.core.permissions import IsAdmin
 
 

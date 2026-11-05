@@ -4,13 +4,13 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from apps.policies.models import Policy
-from .models import Claim, ClaimPolicy, SupportingDocument
-from .services import triage_claim, process_claim, has_required_documents
-from .routing import assign_claim, NoAvailableOfficerError
-from .image_validation import (
+from ..models import Claim, ClaimPolicy, SupportingDocument
+from ..services.processing import triage_claim, process_claim, has_required_documents
+from ..services.routing import assign_claim, NoAvailableOfficerError
+from ..services.image_validation import (
     ImageVerdict, validate_vehicle_image
 )
-from apps.accounts.serializers import AssignedOfficerSerializer
+from apps.accounts.api.serializers import AssignedOfficerSerializer
 
 class ClaimSubmissionSerializer(serializers.ModelSerializer):
     documents = serializers.ListField(

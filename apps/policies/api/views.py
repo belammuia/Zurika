@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, viewsets
 
-from .models import Vehicle, Policy
+from ..models import Vehicle, Policy
 from .serializers import VehicleSerializer, PolicySerializer
 
 from apps.core.permissions import IsAdmin

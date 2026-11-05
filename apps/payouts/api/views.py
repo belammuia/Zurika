@@ -10,8 +10,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Payout
-from .payouts import settle_payout
+from ..models import Payout
+from ..services.payouts import settle_payout
 
 logger = logging.getLogger(__name__)
 

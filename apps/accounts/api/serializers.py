@@ -4,7 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import Profile, OfficerProfile
+from ..models import Profile, OfficerProfile
 
 User = get_user_model()
 

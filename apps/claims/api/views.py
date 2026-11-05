@@ -2,7 +2,7 @@
 from rest_framework import permissions, viewsets
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 
-from .models import Claim, SupportingDocument
+from ..models import Claim, SupportingDocument
 from .serializers import (
     ClaimReadSerializer,
     ClaimSubmissionSerializer,
@@ -10,7 +10,7 @@ from .serializers import (
     ClaimReviewSerializer
 )
 from apps.core.permissions import IsClient, IsOfficerOrAbove
-from .services import review_claim
+from ..services.processing import review_claim
 from rest_framework.decorators import action
 from rest_framework.response import Response
 

@@ -1,10 +1,10 @@
 from django.db import transaction
-from .models import Claim, Payout,PayoutAttempt
+from ..models import Claim, Payout,PayoutAttempt
 
 
 @transaction.atomic
 def create_payout(claim):
-    from .tasks import send_payout
+    from ..tasks import send_payout
 
     if not claim.insurer_id:
         raise ValueError("Claim must belong to an insurer.")
@@ -77,7 +77,7 @@ def settle_payout(provider_ref, success, reason=""):
         )
 
     if success:
-        from .tasks import send_payout_success_email
+        from ..tasks import send_payout_success_email
 
         transaction.on_commit(
             lambda: send_payout_success_email.delay(payout.pk)
@@ -123,7 +123,7 @@ def retry_failed_payout(payout_id):
         update_fields=["status", "failure_reason", "updated_at"]
     )
 
-    from .tasks import send_payout
+    from ..tasks import send_payout
 
     transaction.on_commit(
         lambda: send_payout.delay(payout.pk)
