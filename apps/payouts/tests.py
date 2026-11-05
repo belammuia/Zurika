@@ -45,8 +45,8 @@ def make_claim():
         "claims.Claim",
         status=Claim.Status.APPROVED,
         estimated_cost=Decimal("250.00"),
+        insurer=baker.make("insurers.Insurer"),
     )
-
 
 def make_payout(
     status="pending",
