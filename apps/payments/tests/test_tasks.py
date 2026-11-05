@@ -43,7 +43,7 @@ class SendPayoutTaskTests(TestCase):
         provider = self.mock_provider()
 
         with patch(
-            "apps.payouts.tasks.get_provider",
+            "apps.payments.tasks.get_provider",
             return_value=provider,
         ):
             send_payout(payout.pk)
@@ -65,7 +65,7 @@ class SendPayoutTaskTests(TestCase):
         provider = self.mock_provider(send_side_effect=check)
 
         with patch(
-            "apps.payouts.tasks.get_provider",
+            "apps.payments.tasks.get_provider",
             return_value=provider,
         ):
             send_payout(payout.pk)
@@ -79,7 +79,7 @@ class SendPayoutTaskTests(TestCase):
         )
 
         with patch(
-            "apps.payouts.tasks.get_provider",
+            "apps.payments.tasks.get_provider",
             return_value=provider,
         ):
             send_payout(payout.pk)
@@ -95,7 +95,7 @@ class SendPayoutTaskTests(TestCase):
         )
 
         with patch(
-            "apps.payouts.tasks.get_provider",
+            "apps.payments.tasks.get_provider",
             return_value=provider,
         ):
             send_payout(payout.pk)
@@ -110,7 +110,7 @@ class SendPayoutTaskTests(TestCase):
         provider = self.mock_provider()
 
         with patch(
-            "apps.payouts.tasks.get_provider",
+            "apps.payments.tasks.get_provider",
             return_value=provider,
         ):
             send_payout(payout.pk)
@@ -127,7 +127,7 @@ class SendPayoutTaskTests(TestCase):
         )
 
         with patch(
-            "apps.payouts.tasks.get_provider",
+            "apps.payments.tasks.get_provider",
             return_value=provider,
         ):
             send_payout(payout.pk)
@@ -143,7 +143,7 @@ class SendPayoutTaskTests(TestCase):
         provider = self.mock_provider(auto_settle=True)
 
         with patch(
-            "apps.payouts.tasks.get_provider",
+            "apps.payments.tasks.get_provider",
             return_value=provider,
         ):
             send_payout(payout.pk)
@@ -179,7 +179,7 @@ class RecoverStuckPayoutsTests(TestCase):
         payout = make_payout(status="pending")
         self.age(payout, 30)
 
-        with patch("apps.payouts.tasks.send_payout.delay") as delay:
+        with patch("apps.payments.tasks.send_payout.delay") as delay:
             recover_stuck_payouts()
 
         delay.assert_called_once_with(payout.pk)
@@ -187,7 +187,7 @@ class RecoverStuckPayoutsTests(TestCase):
     def test_fresh_pending_payout_is_left_alone(self):
         make_payout(status="pending")
 
-        with patch("apps.payouts.tasks.send_payout.delay") as delay:
+        with patch("apps.payments.tasks.send_payout.delay") as delay:
             recover_stuck_payouts()
 
         delay.assert_not_called()
@@ -196,7 +196,7 @@ class RecoverStuckPayoutsTests(TestCase):
         payout = make_payout(status="processing", ref="r1")
         self.age(payout, 30)
 
-        with patch("apps.payouts.tasks.send_payout.delay") as delay:
+        with patch("apps.payments.tasks.send_payout.delay") as delay:
             recover_stuck_payouts()
 
         delay.assert_not_called()

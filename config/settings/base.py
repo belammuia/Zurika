@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.claims',
     'apps.policies',
-    'apps.payouts',
+    'apps.payments',
+    'apps.banks',
     "apps.insurers.apps.InsurersConfig",
 ]
 
@@ -174,7 +175,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60.0,
     },
     "recover-stuck-payouts": {
-        "task": "apps.payouts.tasks.recover_stuck_payouts",
+        "task": "apps.payments.tasks.recover_stuck_payouts",
         "schedule": 300.0,
     },
 }
@@ -197,21 +198,23 @@ CELERY_TASK_EAGER_PROPAGATES = (
     os.environ.get("CELERY_TASK_EAGER_PROPAGATES", "False").lower()
     == "true"
 )
-MPESA_CONSUMER_KEY=os.environ.get('MPESA_CONSUMER_KEY')
-MPESA_CONSUMER_SECRET=os.environ.get('MPESA_CONSUMER_SECRET')
-MPESA_PASSKEY=os.environ.get('MPESA_PASSKEY')
-MPESA_SHORTCODE=os.environ.get('MPESA_SHORTCODE')
+MPESA_CONSUMER_KEY = os.environ.get('MPESA_CONSUMER_KEY')
+MPESA_CONSUMER_SECRET = os.environ.get('MPESA_CONSUMER_SECRET')
+MPESA_PASSKEY = os.environ.get('MPESA_PASSKEY')
+MPESA_SHORTCODE = os.environ.get('MPESA_SHORTCODE')
 MPESA_INITIATOR_NAME = os.environ.get("MPESA_INITIATOR_NAME", default="")
-MPESA_SECURITY_CREDENTIAL=os.environ.get("MPESA_SECURITY_CREDENTIAL", default="")
-MPESA_CALLBACK_BASE_URL=os.environ.get("MPESA_CALLBACK_BASE_URL")
-MPESA_CALLBACK_SECRET=os.environ.get("MPESA_CALLBACK_SECRET")
-MPESA_ENV=os.environ.get("MPESA_ENV")
-MPESA_INITIATOR_PASSWORD=os.environ.get("MPESA_INITIATOR_PASSWORD")
+MPESA_SECURITY_CREDENTIAL = os.environ.get("MPESA_SECURITY_CREDENTIAL", default="")
+MPESA_CALLBACK_BASE_URL = os.environ.get("MPESA_CALLBACK_BASE_URL")
+MPESA_CALLBACK_SECRET = os.environ.get("MPESA_CALLBACK_SECRET")
+MPESA_ENV = os.environ.get("MPESA_ENV")
+MPESA_INITIATOR_PASSWORD = os.environ.get("MPESA_INITIATOR_PASSWORD")
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL"
 )
 
-
+KCB_BUNI_BASE_URL = "https://uat.buni.kcbgroup.com"
+KCB_CONSUMER_KEY= os.environ.get("KCB_CONSUMER_KEY")
+KCB_CONSUMER_SECRET = os.environ.get("KCB_CONSUMER_SECRET")
 
 

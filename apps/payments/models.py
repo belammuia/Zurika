@@ -1,9 +1,11 @@
-# claims/models.py
 from django.db import models
 from apps.claims.models import Claim
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+
+
 
 
 class BankBeneficiary(models.Model):
@@ -30,6 +32,12 @@ class BankBeneficiary(models.Model):
 
     swift_code = models.CharField(max_length=11, blank=True)
     country_code = models.CharField(max_length=2, default="KE")
+
+    bank = models.ForeignKey(
+        "banks.Bank", 
+        on_delete=models.PROTECT, 
+        related_name="beneficiaries"
+    )
 
     currency = models.CharField(
         max_length=3,

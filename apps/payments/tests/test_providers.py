@@ -69,7 +69,7 @@ class MpesaProviderTests(TestCase):
                 return_value="tok",
             ),
             patch(
-                "apps.payouts.providers.mpesa.requests.post",
+                "apps.payments.providers.mpesa.requests.post",
                 return_value=response,
                 side_effect=side_effect,
             ) as post,
@@ -178,7 +178,7 @@ class MpesaProviderTests(TestCase):
                 return_value="tok",
             ),
             patch(
-                "apps.payouts.providers.mpesa.requests.post"
+                "apps.payments.providers.mpesa.requests.post"
             ) as post,
         ):
             with self.assertRaises(ProviderRejected):
@@ -188,7 +188,7 @@ class MpesaProviderTests(TestCase):
 
     def test_auth_failure_is_a_definite_rejection(self):
         with patch(
-            "apps.payouts.providers.mpesa.requests.get",
+            "apps.payments.providers.mpesa.requests.get",
             side_effect=requests.ConnectionError(),
         ):
             with self.assertRaises(ProviderRejected):

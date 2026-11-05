@@ -11,7 +11,7 @@ from django.core.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 from apps.accounts.models import OfficerProfile
 from ..tasks import assign_pending_claims
-from apps.payouts.services.payouts import create_payout
+from apps.payments.services.payouts import create_payout
 
 
 FAST_TRACK_THRESHOLD = Decimal("50000.00")

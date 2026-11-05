@@ -9,16 +9,16 @@ from model_bakery import baker
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
-from apps.payouts.models import Payout
+from apps.payments.models import Payout
 from apps.claims.models import Claim
-from apps.payouts.services.payouts import settle_payout
-from apps.payouts.providers import (
+from apps.payments.services.payouts import settle_payout
+from apps.payments.providers import (
     MpesaProvider,
     ProviderRejected,
     get_provider,
     normalize_phone,
 )
-from apps.payouts.tasks import (
+from apps.payments.tasks import (
     choose_method,
     recover_stuck_payouts,
     send_payout,
