@@ -2,10 +2,10 @@ from celery import Celery
 import os
 
 # Set Django settings module
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 # Create Celery app
-app = Celery('server')
+app = Celery('config')
 
 # Load config from Django settings
 app.config_from_object('django.conf:settings', namespace='CELERY')

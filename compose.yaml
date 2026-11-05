@@ -17,7 +17,7 @@ services:
 
   worker:
     build: .
-    command: celery -A server worker --loglevel=info
+    command: celery -A config worker --loglevel=info
     env_file:
       - .env
     volumes:
@@ -30,7 +30,7 @@ services:
 
   beat:
     build: .
-    command: celery -A server beat --loglevel=info
+    command: celery -A config beat --loglevel=info
     env_file:
       - .env
     volumes:
