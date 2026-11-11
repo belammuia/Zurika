@@ -1,0 +1,135 @@
+import type { ClaimRecord, RoutingRule, UserRole } from '../types';
+
+export const roleLabels: Record<UserRole, string> = {
+  client: 'Policyholder',
+  claims_officer: 'Claims Officer',
+  senior_officer: 'Senior Claims Officer',
+  admin: 'Administrator',
+};
+
+export const claimsSeed: ClaimRecord[] = [
+  {
+    id: 'TC-2026-1048', claimant: 'Amina Patel', initials: 'AP', email: 'amina.patel@email.com',
+    vehicle: '2022 Toyota Corolla', registration: 'CA 482-716', policyNumber: 'POL-2026-08421',
+    incidentDate: '6 Oct 2026', incidentTime: '08:40', incidentType: 'Collision', location: 'Kenyatta Avenue, Nairobi',
+    description: 'Another vehicle struck the front-left side of my car at the intersection of Kenyatta Avenue. The bumper and left headlight were damaged. My passenger sustained a minor wrist injury and received medical attention.',
+    submitted: '7 Oct 2026 · 09:12', amount: 68500, status: 'More info requested', priority: 'High', queue: 'Injury/Theft',
+    insurer: 'Zurika Motor Insurance', injury: true, thirdParty: true, policeReport: 'CAS 184/10/2026', officer: 'Daniel Brooks',
+    officerTeam: 'Injury/Theft team', comments: 'Please upload the passenger’s medical note confirming the wrist injury so our team can complete the assessment.',
+    photos: ['front-damage.jpg', 'side-view.jpg', 'incident-scene.jpg'],
+  },
+  {
+    id: 'TC-2026-1046', claimant: 'Lebo Nkosi', initials: 'LN', email: 'lebo.nkosi@email.com', vehicle: '2021 Mazda Demio',
+    registration: 'KBX 291A', policyNumber: 'POL-2026-07731', incidentDate: '6 Oct 2026', incidentTime: '17:20', incidentType: 'Collision',
+    location: 'Ngong Road, Nairobi', description: 'A vehicle changed lanes and damaged the passenger-side door.', submitted: '6 Oct 2026 · 16:40',
+    amount: 22000, status: 'Under review', priority: 'High', queue: 'Injury/Theft', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: true, policeReport: 'CAS 179/10/2026', officer: 'Daniel Brooks', officerTeam: 'Injury/Theft team',
+    comments: 'Evidence received. Assessment is in progress.', photos: ['side-view.jpg'],
+  },
+  {
+    id: 'TC-2026-1049', claimant: 'James Smith', initials: 'JS', email: 'james.smith@email.com', vehicle: '2019 Nissan Note',
+    registration: 'KDA 509G', policyNumber: 'POL-2026-09012', incidentDate: '8 Oct 2026', incidentTime: '11:10', incidentType: 'Collision',
+    location: 'Westlands, Nairobi', description: 'Damage to the rear bumper following a low-speed collision.', submitted: '8 Oct 2026 · 11:45',
+    amount: 95000, status: 'Under review', priority: 'High', queue: 'Major Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: true, policeReport: 'CAS 190/10/2026', officer: 'Sarah Adams', officerTeam: 'Major Damage team',
+    comments: 'Repair estimate requested.', photos: ['front-damage.jpg'],
+  },
+  {
+    id: 'TC-2026-1053', claimant: 'Sarah Adams', initials: 'SA', email: 'sarah.adams@email.com', vehicle: '2018 Toyota Vitz',
+    registration: 'KCY 117M', policyNumber: 'POL-2026-07210', incidentDate: '9 Oct 2026', incidentTime: '06:50', incidentType: 'Theft',
+    location: 'Kilimani, Nairobi', description: 'Vehicle was reported stolen overnight.', submitted: '9 Oct 2026 · 07:35', amount: 220000,
+    status: 'Submitted', priority: 'High', queue: 'Injury/Theft', insurer: 'Zurika Motor Insurance', injury: false, thirdParty: false,
+    policeReport: 'OB 044/09/10/2026', officer: 'Unassigned', officerTeam: 'Injury/Theft team', comments: 'Awaiting initial review.', photos: ['incident-scene.jpg'],
+  },
+  {
+    id: 'TC-2026-1042', claimant: 'Mia Jacobs', initials: 'MJ', email: 'mia.jacobs@email.com', vehicle: '2020 Honda Fit',
+    registration: 'KDG 912P', policyNumber: 'POL-2026-08200', incidentDate: '5 Oct 2026', incidentTime: '14:10', incidentType: 'Vandalism',
+    location: 'Kileleshwa, Nairobi', description: 'Side windows and mirrors were damaged while parked.', submitted: '5 Oct 2026 · 15:10',
+    amount: 18000, status: 'Under review', priority: 'Medium', queue: 'Major Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: false, policeReport: 'CAS 171/10/2026', officer: 'Daniel Brooks', officerTeam: 'Major Damage team',
+    comments: 'Awaiting assessor notes.', photos: ['side-view.jpg'],
+  },
+  {
+    id: 'TC-2026-1050', claimant: 'Noah Williams', initials: 'NW', email: 'noah.williams@email.com', vehicle: '2022 Toyota Axio',
+    registration: 'KDK 301Q', policyNumber: 'POL-2026-09020', incidentDate: '8 Oct 2026', incidentTime: '09:30', incidentType: 'Fire',
+    location: 'Parklands, Nairobi', description: 'Engine bay sustained fire damage.', submitted: '8 Oct 2026 · 10:20', amount: 32000,
+    status: 'Submitted', priority: 'Medium', queue: 'Major Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: false, policeReport: 'CAS 188/10/2026', officer: 'Unassigned', officerTeam: 'Major Damage team',
+    comments: 'Awaiting initial review.', photos: ['front-damage.jpg'],
+  },
+  {
+    id: 'TC-2026-1040', claimant: 'Ethan Naidoo', initials: 'EN', email: 'ethan.naidoo@email.com', vehicle: '2017 Subaru Impreza',
+    registration: 'KDA 305B', policyNumber: 'POL-2026-07810', incidentDate: '5 Oct 2026', incidentTime: '18:20', incidentType: 'Collision',
+    location: 'Mombasa Road, Nairobi', description: 'Minor scrape to rear side panel.', submitted: '5 Oct 2026 · 18:55', amount: 23500,
+    status: 'Under review', priority: 'Low', queue: 'Minor Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: false, policeReport: 'CAS 168/10/2026', officer: 'Daniel Brooks', officerTeam: 'Minor Damage team',
+    comments: 'Review in progress.', photos: ['side-view.jpg'],
+  },
+  {
+    id: 'TC-2026-1052', claimant: 'Chloe Wilson', initials: 'CW', email: 'chloe.wilson@email.com', vehicle: '2015 Toyota Passo',
+    registration: 'KCB 440X', policyNumber: 'POL-2026-09111', incidentDate: '9 Oct 2026', incidentTime: '12:00', incidentType: 'Collision',
+    location: 'CBD, Nairobi', description: 'Minor damage to rear bumper.', submitted: '9 Oct 2026 · 12:35', amount: 8200,
+    status: 'Submitted', priority: 'Low', queue: 'Minor Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: false, policeReport: 'CAS 194/10/2026', officer: 'Unassigned', officerTeam: 'Minor Damage team',
+    comments: 'Awaiting initial review.', photos: ['incident-scene.jpg'],
+  },
+  {
+    id: 'TC-2026-1039', claimant: 'Amina Patel', initials: 'AP', email: 'amina.patel@email.com', vehicle: '2022 Toyota Corolla',
+    registration: 'CA 482-716', policyNumber: 'POL-2026-08421', incidentDate: '18 Sep 2026', incidentTime: '15:25', incidentType: 'Windscreen damage',
+    location: 'Lavington, Nairobi', description: 'Windscreen cracked after a stone was thrown up by a passing vehicle.', submitted: '19 Sep 2026 · 08:15',
+    amount: 28500, status: 'Approved', priority: 'Low', queue: 'Minor Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: false, policeReport: 'Not required', officer: 'Daniel Brooks', officerTeam: 'Minor Damage team',
+    comments: 'Replacement approved. Settlement is complete.', photos: ['front-damage.jpg'],
+  },
+  {
+    id: 'TC-2026-1027', claimant: 'Amina Patel', initials: 'AP', email: 'amina.patel@email.com', vehicle: '2022 Toyota Corolla',
+    registration: 'CA 482-716', policyNumber: 'POL-2026-08421', incidentDate: '22 Aug 2026', incidentTime: '10:05', incidentType: 'Collision',
+    location: 'Kilimani, Nairobi', description: 'Rear bumper damaged while reversing in a parking area.', submitted: '22 Aug 2026 · 11:20',
+    amount: 41000, status: 'Closed', priority: 'Low', queue: 'Minor Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: false, policeReport: 'Not required', officer: 'Daniel Brooks', officerTeam: 'Minor Damage team',
+    comments: 'Claim closed after settlement.', photos: ['side-view.jpg'],
+  },
+  {
+    id: 'TC-2026-1014', claimant: 'Amina Patel', initials: 'AP', email: 'amina.patel@email.com', vehicle: '2022 Toyota Corolla',
+    registration: 'CA 482-716', policyNumber: 'POL-2026-08421', incidentDate: '12 Jul 2026', incidentTime: '19:10', incidentType: 'Vandalism',
+    location: 'Westlands, Nairobi', description: 'Passenger-side mirror was damaged while the vehicle was parked.', submitted: '13 Jul 2026 · 09:00',
+    amount: 12500, status: 'Approved', priority: 'Low', queue: 'Minor Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: false, policeReport: 'OB 033/12/07/2026', officer: 'Daniel Brooks', officerTeam: 'Minor Damage team',
+    comments: 'Repair reimbursement approved.', photos: ['side-view.jpg'],
+  },
+  {
+    id: 'TC-2026-1006', claimant: 'Amina Patel', initials: 'AP', email: 'amina.patel@email.com', vehicle: '2022 Toyota Corolla',
+    registration: 'CA 482-716', policyNumber: 'POL-2026-08421', incidentDate: '3 Jun 2026', incidentTime: '07:45', incidentType: 'Collision',
+    location: 'Thika Road, Nairobi', description: 'Minor side-panel damage in slow-moving traffic.', submitted: '3 Jun 2026 · 09:10',
+    amount: 19500, status: 'Closed', priority: 'Low', queue: 'Minor Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: true, policeReport: 'CAS 090/03/06/2026', officer: 'Daniel Brooks', officerTeam: 'Minor Damage team',
+    comments: 'Claim processed and closed.', photos: ['side-view.jpg'],
+  },
+  {
+    id: 'TC-2026-0998', claimant: 'Amina Patel', initials: 'AP', email: 'amina.patel@email.com', vehicle: '2022 Toyota Corolla',
+    registration: 'CA 482-716', policyNumber: 'POL-2026-08421', incidentDate: '19 May 2026', incidentTime: '13:30', incidentType: 'Theft',
+    location: 'Kileleshwa, Nairobi', description: 'Side mirror stolen overnight.', submitted: '20 May 2026 · 08:50',
+    amount: 9800, status: 'Approved', priority: 'Medium', queue: 'Injury/Theft', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: false, policeReport: 'OB 014/20/05/2026', officer: 'Sarah Adams', officerTeam: 'Injury/Theft team',
+    comments: 'Replacement approved and paid.', photos: ['incident-scene.jpg'],
+  },
+  {
+    id: 'TC-2026-0983', claimant: 'Amina Patel', initials: 'AP', email: 'amina.patel@email.com', vehicle: '2022 Toyota Corolla',
+    registration: 'CA 482-716', policyNumber: 'POL-2026-08421', incidentDate: '7 Apr 2026', incidentTime: '16:15', incidentType: 'Collision',
+    location: 'Ngong Road, Nairobi', description: 'Front grille cracked in a low-speed collision.', submitted: '8 Apr 2026 · 09:20',
+    amount: 33500, status: 'Closed', priority: 'Low', queue: 'Minor Damage', insurer: 'Zurika Motor Insurance', injury: false,
+    thirdParty: true, policeReport: 'CAS 041/07/04/2026', officer: 'Daniel Brooks', officerTeam: 'Minor Damage team',
+    comments: 'Claim closed following repair payment.', photos: ['front-damage.jpg'],
+  },
+];
+
+export const routingRuleSeed: RoutingRule[] = [
+  { order: 1, condition: 'Injury = Yes', description: 'Always takes precedence over incident type and amount.', priority: 'High', team: 'Injury/Theft', enabled: true },
+  { order: 2, condition: 'Incident type = Theft', description: 'Applies when no injury rule has matched.', priority: 'High', team: 'Injury/Theft', enabled: true },
+  { order: 3, condition: 'Amount ≥ 50,000', description: 'Major damage; only when no injury or theft rule matches.', priority: 'High', team: 'Major Damage', enabled: true },
+  { order: 4, condition: 'Incident type = Fire or Vandalism', description: 'Below threshold; specialist damage assessment.', priority: 'Medium', team: 'Major Damage', enabled: true },
+  { order: 5, condition: 'Amount below 50,000', description: 'Remaining non-injury, non-theft collision claims.', priority: 'Low', team: 'Minor Damage', enabled: true },
+  { order: 6, condition: 'Legacy: Amount ≥ 100,000', description: 'Disabled. Replaced by the major damage threshold above.', priority: 'High', team: 'Major Damage', enabled: false },
+];
+
+export const money = (amount: number) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(amount);

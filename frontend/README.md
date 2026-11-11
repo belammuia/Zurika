@@ -1,54 +1,65 @@
-# Zurika frontend
+# Zurika Frontend
 
-Standalone Angular + TypeScript + Tailwind CSS frontend prototype for the Zurika motor-insurance claims platform. The project is intentionally isolated under `frontend/` when copied into the existing repository; it does not change Django, Celery, Redis, PostgreSQL, or backend configuration.
+Standalone React + TypeScript + Tailwind CSS frontend prototype for Zurika Motor Insurance Claims. The Django backend remains in the repository root and is not modified by this project.
+
+## Requirements
+
+- Node.js 20.19+ (Node 22 LTS recommended)
+- npm 10+
 
 ## Run locally
 
-Requirements: Node.js 20.19+ and npm.
-
 ```bash
+cd frontend
 npm install
-npm start
+npm run dev
 ```
 
-Open [http://localhost:4200](http://localhost:4200).
+Open http://localhost:5173.
 
-## Production build
+## Build
 
 ```bash
 npm run build
+npm run preview
 ```
 
-## Design reference
+## Prototype navigation
 
-This implementation follows the supplied **Project Design** PDF (dated 9 October 2026). The interface carries through its pale grey workspace, white cards, compact tables, blue primary actions, role-specific side navigation, customer claim wizard, claims officer queue/review, and routing rules. The supplied vehicle evidence photographs are used in the local prototype assets.
+The app starts on the claims-officer dashboard. Use the role selector in the top-right corner to preview each workspace:
 
-## Included screens
+- Customer
+- Claims Officer
+- Senior Officer
+- Administrator
 
-- Sign-in with Customer / Claims Officer role tabs
-- Customer dashboard, My Claims, claim detail / progress, three-step File a Claim flow, and submission confirmation
-- Claims Officer dashboard, Claims Queue, detailed claim review with Approve / Reject / Request More Info / Reassign actions, and Routing Rules
-- Senior Officer dashboard and approvals queue
-- Administrator overview, insurer directory, team & access, payouts, and audit trail
-- Documents register and local role preview selector
+The login screen is available at `/login`. Demo login accepts any non-empty email and password; choose the role before signing in.
 
-## Prototype behaviour
+## Included interfaces
 
-All records are mock data in `src/app/mock-data.ts`. Search and filters, routing-rule toggles/editing, the member invite form, claim submission steps, and claim review actions run locally in the browser. No authentication, API requests, real document uploads, claim state persistence, payout instructions, or backend integration is connected.
+- Login and role preview
+- Customer dashboard, claim submission, claims list and claim tracking
+- Claims officer dashboard, queue, claim review and routing rules
+- Senior officer approvals and payout oversight
+- Administrator overview, payouts, insurers, team access, documents and audit trail
 
-## Structure
+All data and interactions are local mock state. No API requests are made. The project uses React Router for navigation and Tailwind CSS v4 through the Vite plugin; the design-specific component styles are kept in `src/styles.css` to preserve the supplied Zurika design language.
+
+## Project structure
 
 ```text
-src/
-  app/
-    core/            # Role preview state
-    pages/           # Standalone routed screens
-    app.component.ts # Role-aware application shell
-    app.routes.ts    # Angular routes
-    mock-data.ts     # Typed demonstration records
-    models.ts        # Domain interfaces and unions
-  assets/            # Evidence photos extracted from the supplied design PDF
-  styles.css         # Tailwind CSS import and product component styles
+frontend/
+├── public/assets/          # Vehicle evidence imagery from the design PDF
+├── src/
+│   ├── components/         # Shared layout and UI components
+│   ├── data/               # Typed mock records and routing rules
+│   ├── pages/              # Role-specific screens
+│   ├── App.tsx
+│   ├── main.tsx
+│   ├── styles.css
+│   └── types.ts
+├── index.html
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
 ```
-
-The root Django project is deliberately not included in this frontend package. Extract this folder as `frontend/` in the Zurika repository to keep concerns separate.
